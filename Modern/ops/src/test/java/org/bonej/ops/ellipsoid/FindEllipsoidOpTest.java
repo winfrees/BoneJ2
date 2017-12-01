@@ -142,9 +142,7 @@ public class FindEllipsoidOpTest {
 			double x = imageCentre.getX() - coordinates[0];
 			double y = imageCentre.getY() - coordinates[1];
 			double z = imageCentre.getZ() - coordinates[2];
-			if (Math.abs(x) <= halfSideLength && Math.abs(y) <= halfSideLength && Math
-				.abs(z) <= halfSideLength) cursor.get().setOne();
-
+			if (Math.abs(x) <= halfSideLength && Math.abs(y) <= halfSideLength && Math.abs(z) <= halfSideLength) cursor.get().setOne();
 		}
 
 		FindEllipsoidOp<BitType> findEllipsoidOp = new FindEllipsoidOp<>();
@@ -189,12 +187,12 @@ public class FindEllipsoidOpTest {
 		FindEllipsoidOp<BitType> FindEllipsoidOp = new FindEllipsoidOp<>();
 		FindEllipsoidOp.setInput1(imgPlus);
 
-		Vector3d lastFGVoxelAlongRay = FindEllipsoidOp.findFirstPointInBGAlongRay(
+		Vector3d firstPointInBGAlongRay = FindEllipsoidOp.findFirstPointInBGAlongRay(
 			new Vector3d(1, 0, 0), new Vector3d(5, 5, 5));
 
-		assertEquals(9, lastFGVoxelAlongRay.getX(), 1.0e-12);
-		assertEquals(5, lastFGVoxelAlongRay.getY(), 1.0e-12);
-		assertEquals(5, lastFGVoxelAlongRay.getZ(), 1.0e-12);
+		assertEquals(10, firstPointInBGAlongRay.getX(), 1.0e-12);
+		assertEquals(5, firstPointInBGAlongRay.getY(), 1.0e-12);
+		assertEquals(5, firstPointInBGAlongRay.getZ(), 1.0e-12);
 	}
 
 	@Test

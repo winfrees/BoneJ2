@@ -238,9 +238,9 @@ public class FindEllipsoidOp<B extends BooleanType<B>> extends
 	}
 
 	private boolean isInBounds(long[] currentPixelPosition) {
-		long width = in1().max(0);
-		long height = in1().max(1);
-		long depth = in1().max(2);
+		long width = in1().dimension(0);
+		long height = in1().dimension(1);
+		long depth = in1().dimension(2);
 		return !(currentPixelPosition[0] < 0 || currentPixelPosition[0] >= width ||
 			currentPixelPosition[1] < 0 || currentPixelPosition[1] >= height ||
 			currentPixelPosition[2] < 0 || currentPixelPosition[2] >= depth);
