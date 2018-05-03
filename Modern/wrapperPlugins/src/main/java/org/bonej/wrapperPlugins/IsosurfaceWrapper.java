@@ -2,10 +2,7 @@
 package org.bonej.wrapperPlugins;
 
 import static org.bonej.utilities.Streamers.spatialAxisStream;
-import static org.bonej.wrapperPlugins.CommonMessages.BAD_CALIBRATION;
-import static org.bonej.wrapperPlugins.CommonMessages.NOT_3D_IMAGE;
-import static org.bonej.wrapperPlugins.CommonMessages.NOT_BINARY;
-import static org.bonej.wrapperPlugins.CommonMessages.NO_IMAGE_OPEN;
+import static org.bonej.wrapperPlugins.CommonMessages.*;
 import static org.scijava.ui.DialogPrompt.MessageType.ERROR_MESSAGE;
 import static org.scijava.ui.DialogPrompt.MessageType.WARNING_MESSAGE;
 
@@ -21,10 +18,12 @@ import java.util.stream.Collectors;
 
 import net.imagej.ImgPlus;
 import net.imagej.axis.CalibratedAxis;
+import net.imagej.mesh.Mesh;
+import net.imagej.mesh.Triangle;
+import net.imagej.mesh.Triangles;
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
-import net.imagej.ops.geom.geom3d.mesh.Facet;
-import net.imagej.ops.geom.geom3d.mesh.Mesh;
+import net.imagej.ops.geom.geom3d.DefaultSurfaceArea;
 import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
 import net.imagej.ops.special.function.Functions;
 import net.imagej.ops.special.function.UnaryFunctionOp;
@@ -36,6 +35,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.DoubleType;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.bonej.utilities.AxisUtils;
@@ -182,10 +182,12 @@ public class IsosurfaceWrapper<T extends RealType<T> & NativeType<T>> extends
 		final Map<String, Mesh> meshes = new HashMap<>();
 		for (Subspace<BitType> subspace : subspaces) {
 			final Mesh mesh = marchingCubesOp.calculate(subspace.interval);
-			final double area = mesh.getSurfaceArea();
+			final DefaultSurfaceArea surfaceArea = new DefaultSurfaceArea();
+			DoubleType area = new DoubleType();
+			surfaceArea.compute(mesh,area);
 			final String suffix = subspace.toString();
 			final String label = suffix.isEmpty() ? name : name + " " + suffix;
-			addResult(label, area);
+			addResult(label, area.get());
 			meshes.put(subspace.toString(), mesh);
 		}
 		return meshes;
@@ -307,22 +309,22 @@ public class IsosurfaceWrapper<T extends RealType<T> & NativeType<T>> extends
 		if (StringUtils.isNullOrEmpty(path)) {
 			throw new IllegalArgumentException("Filename cannot be null or empty");
 		}
-		if (!mesh.triangularFacets()) {
+		if (mesh.triangles().size()==0) {
 			throw new IllegalArgumentException(
 				"Cannot write STL file: invalid surface mesh");
 		}
 
-		final List<Facet> facets = mesh.getFacets();
-		final int numFacets = facets.size();
+		final Triangles triangles =  mesh.triangles();
+		final long numTriangles = triangles.size();
 		try (FileOutputStream writer = new FileOutputStream(path)) {
 			final byte[] header = STL_HEADER.getBytes();
 			writer.write(header);
 			final byte[] facetBytes = ByteBuffer.allocate(4).order(
-				ByteOrder.LITTLE_ENDIAN).putInt(numFacets).array();
+				ByteOrder.LITTLE_ENDIAN).putLong(numTriangles).array();
 			writer.write(facetBytes);
 			final ByteBuffer buffer = ByteBuffer.allocate(50);
 			buffer.order(ByteOrder.LITTLE_ENDIAN);
-			for (Facet facet : facets) {
+			for (Triangle facet : triangles) {
 				final TriangularFacet triangularFacet = (TriangularFacet) facet;
 				writeSTLFacet(buffer, triangularFacet);
 				writer.write(buffer.array());

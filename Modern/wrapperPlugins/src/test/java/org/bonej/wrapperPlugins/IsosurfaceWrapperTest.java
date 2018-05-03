@@ -30,7 +30,9 @@ import net.imagej.ImageJ;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imagej.axis.DefaultLinearAxis;
-import net.imagej.ops.geom.geom3d.mesh.DefaultMesh;
+import net.imagej.mesh.Triangle;
+import net.imagej.mesh.Triangles;
+import net.imagej.mesh.naive.NaiveDoubleMesh;
 import net.imagej.ops.geom.geom3d.mesh.Facet;
 import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
 import net.imagej.ops.geom.geom3d.mesh.Vertex;
@@ -166,14 +168,14 @@ public class IsosurfaceWrapperTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testWriteBinarySTLFileNullNameThrowsIAE() throws Exception {
-		final DefaultMesh mesh = new DefaultMesh();
+		final NaiveDoubleMesh mesh = new NaiveDoubleMesh();
 
 		IsosurfaceWrapper.writeBinarySTLFile(null, mesh);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testWriteBinarySTLFileEmptyNameThrowsIAE() throws Exception {
-		final DefaultMesh mesh = new DefaultMesh();
+		final NaiveDoubleMesh mesh = new NaiveDoubleMesh();
 
 		IsosurfaceWrapper.writeBinarySTLFile("", mesh);
 	}
@@ -182,8 +184,8 @@ public class IsosurfaceWrapperTest {
 	public void testWriteBinarySTLFileNonTriangularMeshThrowsIAE()
 		throws Exception
 	{
-		final DefaultMesh mesh = mock(DefaultMesh.class);
-		when(mesh.triangularFacets()).thenReturn(false);
+		final NaiveDoubleMesh mesh = mock(NaiveDoubleMesh.class);
+		when(mesh.triangles()).thenReturn(null);
 
 		IsosurfaceWrapper.writeBinarySTLFile("Mesh", mesh);
 	}
@@ -191,12 +193,10 @@ public class IsosurfaceWrapperTest {
 	@Test
 	public void testWriteBinarySTLFile() throws Exception {
 		// Create test mesh
-		final DefaultMesh mesh = new DefaultMesh();
-		mesh.addFace(new TriangularFacet(new Vertex(1.0, 0.0, 0.0), new Vertex(0.0,
-			1.0, 0.0), new Vertex(0.0, 0.0, 0.0)));
-		mesh.addFace(new TriangularFacet(new Vertex(0.0, 0.0, 1.0), new Vertex(0.0,
-			1.0, 0.0), new Vertex(0.0, 0.0, 0.0)));
-		final int expectedLength = 80 + 4 + mesh.getFacets().size() * 50;
+		final NaiveDoubleMesh mesh = new NaiveDoubleMesh();
+		mesh.triangles().add(1.0, 0.0, 0.0,0.0,1.0, 0.0,0.0, 0.0, 0.0);
+		mesh.triangles().add(0.0, 0.0, 1.0,0.0,1.0, 0.0,0.0, 0.0, 0.0);
+		final long expectedLength = 80 + 4 + mesh.triangles().size() * 50;
 
 		// Write test mesh to a file
 		final String filePath = "./test_file.stl";
@@ -218,10 +218,10 @@ public class IsosurfaceWrapperTest {
 			ByteOrder.LITTLE_ENDIAN).getInt();
 		assertEquals("Wrong number of facets in the file", 2, numFacets);
 
-		final List<Facet> facets = mesh.getFacets();
+		final Triangles triangles = mesh.triangles();
 		int offset = 84;
-		for (Facet facet : facets) {
-			final TriangularFacet triangularFacet = (TriangularFacet) facet;
+		for (Triangle triangle : triangles) {
+			final TriangularFacet triangularFacet = (TriangularFacet) triangle;
 			assertVector3DEquals("Normal is incorrect", triangularFacet.getNormal(),
 				readVector3D(bytes, offset));
 			assertVector3DEquals("Vertex is incorrect", triangularFacet.getP0(),
