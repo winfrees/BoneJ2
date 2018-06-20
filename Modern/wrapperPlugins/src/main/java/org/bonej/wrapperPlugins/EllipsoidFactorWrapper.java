@@ -33,6 +33,7 @@ import org.scijava.prefs.PrefService;
 import org.scijava.ui.UIService;
 import org.scijava.vecmath.Matrix3d;
 import org.scijava.vecmath.Vector3d;
+import sc.iview.SciView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +68,9 @@ public class EllipsoidFactorWrapper<R extends RealType<R>> extends ContextComman
 
     @Parameter(persist = false, required = false)
     private DoubleType percentageOfRidgePoints = new DoubleType(0.8);
+
+    @Parameter
+    private SciView sciview;
 
     @Parameter(label = "Ridge image", type = ItemIO.OUTPUT)
     private ImgPlus<UnsignedByteType> ridgePointsImage;
@@ -162,6 +166,8 @@ public class EllipsoidFactorWrapper<R extends RealType<R>> extends ContextComman
 
         final List<Ellipsoid> ellipsoids = starVolumes.parallelStream().map(s -> getLocalEllipsoids(s.getB(), s.getA())).flatMap(l -> l.stream()).filter(e -> e.getA()>minimumAxisLength.get() && whollyContainedInForeground(e,sphereSamplingDirections)).collect(Collectors.toList());
         ellipsoids.sort(Comparator.comparingDouble(e -> -e.getVolume()));
+
+        //final graphics.scenery.Node node = sciview.addSphere();
 
         //find EF values
         statusService.showStatus("Ellipsoid Factor: preparing assignment...");

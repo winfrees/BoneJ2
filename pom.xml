@@ -10,7 +10,7 @@
 
     <modules>
         <module>Modern</module>
-        <!--<module>Legacy</module>-->
+        <module>Legacy</module>
     </modules>
 
     <properties>

@@ -145,6 +145,7 @@ public class FindLocalEllipsoidOpTest {
     }
 
 
+    @Ignore
     @Test
     public void testQ1() {
         Vector3d sphereCentre = new Vector3d(3, 4, 5);
@@ -170,6 +171,7 @@ public class FindLocalEllipsoidOpTest {
 
     }
 
+    @Ignore
     @Test
     public void testQ2() {
         Vector3d p = new Vector3d(4, 4, 1);
