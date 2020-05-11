@@ -13,6 +13,7 @@ import org.bonej.wrapperPlugins.wrapperUtils.HyperstackUtils.Subspace;
 import org.bonej.wrapperPlugins.wrapperUtils.UsageReporter;
 import org.scijava.command.CommandService;
 import org.scijava.command.ContextCommand;
+import org.scijava.log.LogService;
 import org.scijava.plugin.PluginService;
 import org.scijava.prefs.PrefService;
 
@@ -31,12 +32,17 @@ public abstract class BoneJCommand extends ContextCommand {
 
     protected void reportUsage() {
         if (reporter == null) {
-            final PrefService prefService = context().getService(PrefService.class);
-            final PluginService pluginService = context().getService(PluginService.class);
-            final CommandService commandService = context().getService(CommandService.class);
-            reporter = UsageReporter.getInstance(prefService, pluginService, commandService);
+            initReporter();
         }
         reporter.reportEvent(getClass().getName());
+    }
+
+    private void initReporter() {
+        final PrefService prefService = context().getService(PrefService.class);
+        final PluginService pluginService = context().getService(PluginService.class);
+        final CommandService commandService = context().getService(CommandService.class);
+        final LogService logService = context().getService(LogService.class);
+        reporter = UsageReporter.getInstance(prefService, pluginService, commandService, logService);
     }
 
     static void setReporter(final UsageReporter reporter) {
